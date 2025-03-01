@@ -24,7 +24,16 @@ type Ayah = {
   numberInSurah: number
 }
 
-export function QuranReader() {
+type Reader = {
+  identifier: string
+  language: string
+  name: string
+  englishName: string
+  format: string
+  type: string
+}
+
+export default function QuranReader() {
   const [surahs, setSurahs] = useState<Surah[]>([])
   const [selectedSurah, setSelectedSurah] = useState<number>(1)
   const [fromVerse, setFromVerse] = useState<number>(1)
@@ -35,6 +44,8 @@ export function QuranReader() {
   const [isPlaying, setIsPlaying] = useState<boolean>(false)
   const [currentVerseIndex, setCurrentVerseIndex] = useState<number>(0)
   const [volume, setVolume] = useState<number>(80)
+  const [readers, setReaders] = useState<Reader[]>([])
+  const [selectedReader, setSelectedReader] = useState<string>("ar.alafasy")
 
   const audioRef = useRef<HTMLAudioElement | null>(null)
 
@@ -55,6 +66,49 @@ export function QuranReader() {
     fetchSurahs()
   }, [])
 
+  useEffect(() => {
+    const fetchReaders = async () => {
+      try {
+        const response = await fetch("https://api.alquran.cloud/v1/edition");
+        const data = await response.json();
+        if (data.code === 200) {
+          // Filter Arabic audio readers
+          const arabicReaders = data.data.filter(
+            (reader: Reader) => reader.format === "audio" && reader.language === "ar"
+          );
+  
+          // Check for valid audio links
+          const validReaders = await Promise.all(
+            arabicReaders.map(async (reader: Reader) => {
+              const audioUrl = `https://cdn.islamic.network/quran/audio/128/${reader.identifier}/1.mp3`;
+              const audioExists = await checkAudioExists(audioUrl);
+              return audioExists ? reader : null;
+            })
+          );
+  
+          // Filter out null values
+          const filteredReaders = validReaders.filter(reader => reader !== null);
+          setReaders(filteredReaders);
+        }
+      } catch (error) {
+        console.error("Error fetching readers:", error);
+      }
+    };
+  
+    fetchReaders();
+  }, []);
+  
+  const checkAudioExists = async (url: string) => {
+    try {
+      const response = await fetch(url, { method: 'HEAD' });
+      return response.ok;
+    } catch (error) {
+      
+      console.error("Error fetching verses:", error); // استخدام المتغير error
+    
+    }
+  };
+
   // Update toVerse when selectedSurah changes
   useEffect(() => {
     if (surahs.length > 0) {
@@ -71,6 +125,8 @@ export function QuranReader() {
     if (audioRef.current) {
       audioRef.current.volume = volume / 100
 
+      const audioElement = audioRef.current
+
       const handleEnded = () => {
         if (currentVerseIndex < verses.length - 1) {
           setCurrentVerseIndex((prev) => prev + 1)
@@ -81,12 +137,10 @@ export function QuranReader() {
         }
       }
 
-      audioRef.current.addEventListener("ended", handleEnded)
+      audioElement.addEventListener("ended", handleEnded)
 
       return () => {
-        if (audioRef.current) {
-          audioRef.current.removeEventListener("ended", handleEnded)
-        }
+        audioElement.removeEventListener("ended", handleEnded)
       }
     }
   }, [currentVerseIndex, verses, volume])
@@ -110,20 +164,18 @@ export function QuranReader() {
     setLoading(true)
     try {
       // Fetch verses text
-      const textResponse = await fetch(`https://api.alquran.cloud/v1/surah/${selectedSurah}/ar.alafasy`)
-      const textData: { code: number; data: { ayahs: Ayah[] } } = await textResponse.json();
-
+      const textResponse = await fetch(`https://api.alquran.cloud/v1/surah/${selectedSurah}/${selectedReader}`)
+      const textData: { code: number; data: { ayahs: Ayah[] } } = await textResponse.json()
 
       if (textData.code === 200) {
         const filteredVerses = textData.data.ayahs
-        .filter((ayah: Ayah) => ayah.numberInSurah >= fromVerse && ayah.numberInSurah <= toVerse)
-        .map((ayah: Ayah) => ({
-          number: ayah.number,
-          text: ayah.text,
-          numberInSurah: ayah.numberInSurah,
-          audio: `https://cdn.islamic.network/quran/audio/128/ar.alafasy/${ayah.number}.mp3`,
-        }));
-      
+          .filter((ayah: Ayah) => ayah.numberInSurah >= fromVerse && ayah.numberInSurah <= toVerse)
+          .map((ayah: Ayah) => ({
+            number: ayah.number,
+            text: ayah.text,
+            numberInSurah: ayah.numberInSurah,
+            audio: `https://cdn.islamic.network/quran/audio/128/${selectedReader}/${ayah.number}.mp3`,
+          }))
 
         setVerses(filteredVerses)
 
@@ -173,6 +225,12 @@ export function QuranReader() {
     }
   }
 
+  // Map reader identifiers to their Arabic names
+  const getArabicReaderName = (identifier: string) => {
+    const reader = readers.find((r) => r.identifier === identifier)
+    return reader ? reader.name : "غير معروف"
+  }
+
   return (
     <div className="space-y-6">
       <Card>
@@ -181,7 +239,7 @@ export function QuranReader() {
           <CardDescription>استمع إلى تلاوة القرآن الكريم مع النص</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <div>
               <label className="text-sm font-medium mb-2 block">السورة</label>
               <Select
@@ -195,6 +253,25 @@ export function QuranReader() {
                   {surahs.map((surah) => (
                     <SelectItem key={surah.number} value={surah.number.toString()}>
                       {surah.number}. {surah.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div>
+              <label className="text-sm font-medium mb-2 block">القارئ</label>
+              <Select
+                value={selectedReader}
+                onValueChange={(value) => setSelectedReader(value)}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="اختر القارئ" />
+                </SelectTrigger>
+                <SelectContent className="max-h-[300px]">
+                  {readers.map((reader) => (
+                    <SelectItem key={reader.identifier} value={reader.identifier}>
+                      {getArabicReaderName(reader.identifier)}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -297,4 +374,3 @@ export function QuranReader() {
     </div>
   )
 }
-
