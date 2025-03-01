@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Progress } from "@/components/ui/progress"
 import { QuranReader } from "@/components/quran-reader"
+import { GitHubStarButton } from "@/components/ui/github-star-button"
 
 export default function RamadanSchedule() {
   const [isWorkDay, setIsWorkDay] = useState(true)
@@ -220,9 +221,11 @@ export default function RamadanSchedule() {
     <div className="min-h-screen bg-gradient-to-b from-blue-50 to-indigo-50 dark:from-slate-950 dark:to-indigo-950 p-4 md:p-6 lg:p-8 rtl">
       <div className="max-w-4xl mx-auto">
         <header className="text-center mb-8">
+          <div className="mt-4">
+            <GitHubStarButton />
+          </div>
           <h1 className="text-3xl md:text-4xl font-bold text-primary mb-2">🌙 جدول العبادات في رمضان</h1>
           <p className="text-muted-foreground">برنامج شامل للعبادات والأذكار وختم القرآن في شهر رمضان المبارك</p>
-
           {userLocation && (
             <div className="flex items-center justify-center mt-4 gap-2">
               <MapPin className="h-4 w-4 text-primary" />
