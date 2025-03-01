@@ -115,13 +115,14 @@ export function QuranReader() {
 
       if (textData.code === 200) {
         const filteredVerses = textData.data.ayahs
-          .filter((ayah: any) => ayah.numberInSurah >= fromVerse && ayah.numberInSurah <= toVerse)
-          .map((ayah: any) => ({
-            number: ayah.number,
-            text: ayah.text,
-            numberInSurah: ayah.numberInSurah,
-            audio: `https://cdn.islamic.network/quran/audio/128/ar.alafasy/${ayah.number}.mp3`,
-          }))
+        .filter((ayah: Ayah) => ayah.numberInSurah >= fromVerse && ayah.numberInSurah <= toVerse)
+        .map((ayah: Ayah) => ({
+          number: ayah.number,
+          text: ayah.text,
+          numberInSurah: ayah.numberInSurah,
+          audio: `https://cdn.islamic.network/quran/audio/128/ar.alafasy/${ayah.number}.mp3`,
+        }));
+      
 
         setVerses(filteredVerses)
 
