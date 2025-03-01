@@ -16,7 +16,7 @@ export default function RamadanSchedule() {
   const [expandedItems, setExpandedItems] = useState<Record<string, boolean>>({})
   const [expandedAdhkar, setExpandedAdhkar] = useState<Record<string, boolean>>({})
   const [expandedQuranDay, setExpandedQuranDay] = useState<number | null>(null)
-  const [prayerTimes, setPrayerTimes] = useState<any>(null)
+  const [prayerTimes, setPrayerTimes] = useState<Record<string, string> | null>(null);
 
   useEffect(() => {
     // Get user's location
