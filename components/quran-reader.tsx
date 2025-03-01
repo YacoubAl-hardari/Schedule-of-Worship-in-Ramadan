@@ -111,7 +111,8 @@ export function QuranReader() {
     try {
       // Fetch verses text
       const textResponse = await fetch(`https://api.alquran.cloud/v1/surah/${selectedSurah}/ar.alafasy`)
-      const textData = await textResponse.json()
+      const textData: { code: number; data: { ayahs: Ayah[] } } = await textResponse.json();
+
 
       if (textData.code === 200) {
         const filteredVerses = textData.data.ayahs
