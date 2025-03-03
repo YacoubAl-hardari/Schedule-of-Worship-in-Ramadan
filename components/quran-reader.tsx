@@ -76,7 +76,7 @@ export default function QuranReader() {
           const arabicReaders = data.data.filter(
             (reader: Reader) => reader.format === "audio" && reader.language === "ar"
           );
-  
+
           // Check for valid audio links
           const validReaders = await Promise.all(
             arabicReaders.map(async (reader: Reader) => {
@@ -85,7 +85,7 @@ export default function QuranReader() {
               return audioExists ? reader : null;
             })
           );
-  
+
           // Filter out null values
           const filteredReaders = validReaders.filter(reader => reader !== null);
           setReaders(filteredReaders);
@@ -94,18 +94,18 @@ export default function QuranReader() {
         console.error("Error fetching readers:", error);
       }
     };
-  
+
     fetchReaders();
   }, []);
-  
+
   const checkAudioExists = async (url: string) => {
     try {
       const response = await fetch(url, { method: 'HEAD' });
       return response.ok;
     } catch (error) {
-      
+
       console.error("Error fetching verses:", error); // استخدام المتغير error
-    
+
     }
   };
 
@@ -325,9 +325,20 @@ export default function QuranReader() {
                 {verses.map((verse, index) => (
                   <div
                     key={verse.number}
-                    className={`p-4 rounded-lg text-right text-lg leading-loose ${
-                      index === currentVerseIndex ? "bg-primary/20 border border-primary/30" : "bg-muted/30"
-                    }`}
+                    onClick={() => {
+                      setCurrentVerseIndex(index)
+                      setCurrentAudio(verse.audio)
+                      setIsPlaying(true)
+                      if (audioRef.current) {
+                        audioRef.current.play().catch((err) =>
+                          console.error("Error playing audio:", err)
+                        )
+                      }
+                    }}
+                    className={`p-4 rounded-lg text-right text-lg leading-loose ${index === currentVerseIndex
+                        ? "bg-primary/20 border border-primary/30"
+                        : "bg-muted/30"
+                      }`}
                   >
                     <p>
                       {verse.text} ﴾ <b style={{ color: 'red' }}>{verse.numberInSurah}</b>﴿
@@ -336,6 +347,7 @@ export default function QuranReader() {
                 ))}
               </div>
             </CardContent>
+
           </Card>
 
           <Card>
