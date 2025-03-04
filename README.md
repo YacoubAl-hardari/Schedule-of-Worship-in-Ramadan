@@ -6,7 +6,7 @@ https://schedule-ramadan.vercel.app/
 <br>
 <br>
 
-![screencapture-localhost-3000-2025-03-01-12_57_35](https://github.com/user-attachments/assets/f64442de-36a0-4ff7-8397-0c507f50193f)
+![screencapture-schedule-ramadan-vercel-app-2025-03-04-18_10_06](https://github.com/user-attachments/assets/366e6efe-a9bd-4467-a349-4f3513c6abb7)
 
 ## Getting Started
 
